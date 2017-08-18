@@ -1,0 +1,168 @@
+<!doctype html>
+<html>
+  <head>
+  <style>
+    [estado="cerrado"] {background-color: red;}
+    [estado="abierto"] {background-color: green;}
+    [estado="inhabilitado"] {background-color: gray; pointer-events: none;
+   cursor: default;}
+  </style>
+
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <title>Socket Client Test!</title>
+  </head>
+  <body>
+    <div class="">
+      <select id="type" disabled>
+        <option value="" disabled selected>Selecciona un Tipo</option>
+        <option value="device">Device</option>
+        <option value="dashboard">dashboard</option>
+      </select>
+    </div>
+
+    <div id="controles_dashboard" style="display:none;">
+      <div>
+        <h2>Dispositivos Disponibles</h2>
+        <ol id="devices_list_control">
+        </ol>
+      </div>
+    </div>
+
+    <div id="controles_devices" style="display:none;">
+      <div id="logged" hidden>
+        <h1 id="status_device">Status:cerrado</h1>
+        <button type="button" name="button" estado='cerrado' id="change_status" onclick="cambiarEstado(this)">cambiar estado</button>
+      </div>
+      <div id="login">
+        <input type="text" name="maquina" value="">
+        <input type="password" name="password" value="">
+        <button type="button" name="auth" id="auth"></button>
+      </div>
+    </div>
+
+  </body>
+
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.js"></script>
+  <script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+  <script type="text/javascript">
+    var socket = io();
+
+    socket.on('get_type', function(msg)
+    {
+      $('#type').prop('disabled',false);
+    });
+
+    socket.on('devices_changed', function ()
+    {
+      socket.emit('devices');
+    });
+
+    socket.on('reconnect',function () {
+      var username = $('input[name="maquina"]').val();
+      var password = $('input[name="password"]').val();
+      socket.emit('auth_device',{username:username,password:password});
+
+    })
+
+    socket.on('devices_list',function (data)
+    {
+      console.log(data);
+      $('#devices_list_control').empty();
+      var estado;
+      for (var i = 0; i < data.devices.length; i++)
+      {
+        if(data.devices[i].status)
+          estado = 'abierto';
+        else if(data.devices[i].status == null)
+            estado = 'inhabilitado';
+        else if(!data.devices[i].status)
+          estado = 'cerrado'
+
+        $('#devices_list_control').append('<li class="ui-widget-content">'+
+                                  '<div>'+
+                                    '<h3>'+data.devices[i].maquina+'</h3>'+
+                                     '<button estado="'+estado+'" id="'+data.devices[i].maquina+'" onclick="cambiarEstado(this)">cambiar estado</button>'+
+                                  '</div>'+
+                                  '</li>');
+      }
+    });
+
+    socket.on('open',function()
+    {
+      $('#status_device').text('Status:Abierto');
+      $('#change_status').attr('estado','abierto');
+    });
+
+    socket.on('close',function()
+    {
+      $('#status_device').text('Status:Cerrado');
+      $('#change_status').attr('estado','cerrado');
+    });
+
+    socket.on('status_changed',function(data)
+    {
+      console.log('Status Changed'+data.maquina);
+      if(data.status)
+        $('#'+data.maquina).attr('estado','abierto');
+      else if(!data.status)
+        $('#'+data.maquina).attr('estado','cerrado');
+      else if(data.status == null)
+        $('#'+data.maquina).attr('estado','inhabilitado');
+    });
+
+    socket.on('loggedIn',function()
+    {
+      $('#login').hide();
+      $('#logged').show();
+    });
+
+    $('#type').change(function()
+    {
+      socket.emit('type', $('#type').val());
+      if($('#type').val() == 'dashboard')
+      {
+        socket.emit('devices');
+        $('#controles_dashboard').show();
+      }
+      else
+      {
+        $('#controles_devices').show();
+      }
+    });
+
+    function asignar(id)
+    {
+      socket.emit('assign',$(id).prop('id'));
+    }
+
+    function cambiarEstado(id)
+    {
+      var estado = $(id).attr('estado');
+      if(estado == 'cerrado')
+      {
+        socket.emit('open',$(id).attr('id'));
+        $(id).attr('estado','abierto');
+      }
+      else
+      {
+        socket.emit('close',$(id).attr('id'));
+        $(id).attr('estado','cerrado');
+      }
+    }
+
+    $('#auth').click(function ()
+    {
+      var username = $('input[name="maquina"]').val();
+      var password = $('input[name="password"]').val();
+      socket.emit('auth_device',{username:username,password:password});
+    });
+
+
+  </script>
+</html>
