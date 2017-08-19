@@ -1,7 +1,8 @@
 var express = require('express');
 var app = express();
 var bodyParser = require('body-parser')
-var server = require('http').createServer(app).listen(443);
+
+var server = require('http').createServer(app).listen((process.env.PORT || 5000));
 var io = require('socket.io')(server, {'pingInterval': 2000, 'pingTimeout': 5000}); // con esto detecta <--
 
 var Sequelize = require('sequelize');
