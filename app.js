@@ -150,7 +150,7 @@ function removerSocket(id)
     if(sockets[index].type == 'device')
     {
       notificarDashboards();
-      //Device.update({activo:0}, { where:{maquina:sockets[index].id}});
+      Device.update({licencia:0}, { where:{maquina:sockets[index].id}});
     }
 
     sockets.splice(index, 1);
