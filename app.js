@@ -90,9 +90,9 @@ io.sockets.on('connection', function(socket)//TODO agregar Autenticacion de dash
           {
             var index = buscarSocket(devices[i].maquina);
             if(index != -1)
-              devices_list.push({maquina:devices[i].maquina, status:sockets[index].status});
+              devices_list.push({device:devices[i], status:sockets[index].status});
             else
-              devices_list.push({maquina:devices[i].maquina, status:null});
+              devices_list.push({device:devices[i], status:null});
           }
           socket.emit('devices_list',{devices:devices_list});
         }
