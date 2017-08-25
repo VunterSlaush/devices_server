@@ -11,7 +11,7 @@ var sockets = []; // Lista de sockets
 var config = require('./config.json');
 
 var sequelize = new Sequelize(config.database_name, config.user, config.passwd, {
-  host: 'sql3.freemysqlhosting.net',
+  host: 'club.c0u5tomeuuqw.us-east-1.rds.amazonaws.com',
   dialect: 'mysql',
 
   define: {
